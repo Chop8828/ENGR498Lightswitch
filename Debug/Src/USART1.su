@@ -1,0 +1,6 @@
+C:/Users/Chop/STM32CubeIDE/workspace_1.19.0/FinalProject/CMSIS/Include/core_cm4.h:1679:22:__NVIC_EnableIRQ	16	static,ignoring_inline_asm
+../Src/USART1.c:21:13:USART1_WriteChar	16	static
+../Src/USART1.c:27:6:USART1_WriteString	16	static
+../Src/USART1.c:36:6:USART1_Pin_Init	4	static
+../Src/USART1.c:54:6:USART1_Init	8	static
+../Src/USART1.c:106:6:USART1_IRQHandler	16	static
