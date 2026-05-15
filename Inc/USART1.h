@@ -12,6 +12,7 @@
 
 #define BT_CMD_MAX_LEN  20U
 
+// enum for command states
 typedef enum {
     BT_CMD_NONE = 0,
     BT_CMD_ON,
@@ -20,6 +21,7 @@ typedef enum {
     BT_CMD_INVALID
 } BluetoothCommandType;
 
+// struct for command values
 typedef struct {
     BluetoothCommandType type;
     uint32_t minutes;

@@ -25,12 +25,11 @@ volatile uint16_t light_off_drop_raw = 0;
 
 volatile uint8_t light_state = 0; // global: 0 = off, 1 = on
 
-//systick & auto keep on values
-
+//auto keep on values
 volatile uint8_t keep_on_active = 0;
 volatile uint32_t keep_on_end_ms = 0;
 
-//debug
+//debug for systick timing
 volatile uint32_t keep_on_time_left_debug_ms = 0;
 volatile uint32_t keep_on_time_left_debug_s = 0;
 
@@ -69,6 +68,7 @@ void Ambient_CalibrateStartup(void) {
 
 	delay_ms(200);
 
+	// sample 10 and average
 	for (uint32_t i = 0; i < samples; i++) {
 		sample = VEML7700_ReadReg16(VEML7700_ALS_DATA);
 
@@ -90,6 +90,7 @@ void Ambient_CalibrateStartup(void) {
 
 	ambient_baseline_raw = sum / valid_samples;
 
+	// below 50% = on, above 80% = off
 	light_on_threshold_raw = ambient_baseline_raw / 2U;
 	light_off_threshold_raw = (ambient_baseline_raw * 8U) / 10U;
 
@@ -101,32 +102,24 @@ void Ambient_CalibrateStartup(void) {
 		light_off_threshold_raw = light_on_threshold_raw + 100U;
 	}
 
+	/* Drop off value to see if there is a major change in light value
+	 * Set to be 25% of the ambient baseline
+	 * So changes larger than this can be on/off (depending on direction of change)
+	 */
+
 	light_off_drop_raw = ambient_baseline_raw / 4U;
 
-	if (light_off_drop_raw < 50U) {
-		light_off_drop_raw = 50U;
-	}
 }
 
-uint8_t Light_Is_Actually_Off(uint16_t starting_raw, uint16_t current_raw) {
-	if (current_raw == 0xFFFF) {
-		return 0;
-	}
 
-	if (current_raw < light_on_threshold_raw) {
-		return 1;
-	}
-
-	if ((starting_raw > current_raw)
-			&& ((starting_raw - current_raw) >= light_off_drop_raw)) {
-		return 1;
-	}
-
-	return 0;
-}
-
-uint8_t Light_Reached_Target(uint16_t starting_raw, uint16_t current_raw,
-		char value[]) {
+/*
+ * 	Checks to see if light switch was actually flicked
+	 * Checks if starting raw value is larger than the current (if drop)
+	 * (smaller than if on)
+	 * And if that starting raw - the current is greater than the
+	 * Predetermined drop-off value in Ambient_calibrate
+	 */
+uint8_t Light_Reached_Target(uint16_t starting_raw, uint16_t current_raw, char value[]) { // value is just char array "on"/"off"
 	if (current_raw == 0xFFFF) {
 		return 0;
 	}
@@ -154,6 +147,9 @@ uint8_t Light_Reached_Target(uint16_t starting_raw, uint16_t current_raw,
 	return 0;
 }
 
+/* if LightReachedTarget returns 0, this function
+ * Continuously flicks the servo until it returns 1
+ */
 uint8_t Try_Turn_Light_Until_Target(char value[]) {
 	uint16_t starting_raw = 0;
 	uint16_t current_raw = 0;
@@ -197,12 +193,18 @@ uint8_t Try_Turn_Light_Until_Target(char value[]) {
 		attempts++;
 	}
 
-	return 0; // tried several times, but did not observe light drop
+	return 0;
+	// tried several times, but did not observe light drop
+	// menaning servo either failed or light already off
 }
 
+
+/*
+ * Auto-keep on functionality
+ * For if the sent command was a minute value
+ */
 void keep_on_x_time(uint32_t minutes) {
 	uint32_t duration_ms = 0;
-
 
 	if (minutes == 0) {
 		keep_on_active = 0;
@@ -217,6 +219,9 @@ void keep_on_x_time(uint32_t minutes) {
 	keep_on_end_ms = millis() + duration_ms;
 }
 
+/*
+ * Checks if the keep-on time has expired
+ */
 uint8_t keep_on_time_expired(void) {
 	if (keep_on_active == 0) {
 		return 0;
@@ -230,6 +235,9 @@ uint8_t keep_on_time_expired(void) {
 	return 0;
 }
 
+/* debug function to read amount of time left
+ * through live expressions
+ */
 uint32_t keep_on_time_left_ms(void) {
     uint32_t now = millis();
 
@@ -279,11 +287,12 @@ int main(void) {
 	while (1) {
 		raw = VEML7700_ReadReg16(VEML7700_ALS_DATA);
 
-		if (raw != 0xFFFF) {
+		if (raw != 0xFFFF) { // should probably remove this because we'r enot currently using the ambient light sensor
 			lux = calculate_lux(raw);
 
 			BluetoothCommand bt_cmd;
 
+			// check bluetooth cmd
 			if (USART1_GetBluetoothCommand(&bt_cmd)) {
 				if (bt_cmd.type == BT_CMD_ON) {
 					keep_on_active = 0;
@@ -310,10 +319,15 @@ int main(void) {
 				}
 			}
 
+			// if there is an auto-turn-off time
 			if (keep_on_active) {
+				//debug
 			    keep_on_time_left_debug_ms = keep_on_time_left_ms();
 			    keep_on_time_left_debug_s = keep_on_time_left_debug_ms / 1000U;
 
+			    /* if time expired, exit block, otherwise
+			     * try to turn light on
+			     */
 				if (keep_on_time_expired()) {
 					delay_ms(LIGHT_SAMPLE_DELAY_MS);
 					continue;
@@ -326,6 +340,8 @@ int main(void) {
 				delay_ms(LIGHT_SAMPLE_DELAY_MS);
 				continue;
 			}
+			// some lux stuff that results in an infinite on/off loop
+			/*
 			else if ((raw < light_on_threshold_raw) && (light_state == 0)) {
 				turn_off_LED();
 				Try_Turn_Light_Until_Target("on");
@@ -333,7 +349,7 @@ int main(void) {
 			else if ((raw > light_off_threshold_raw) && (light_state == 1)) {
 				Try_Turn_Light_Until_Target("off");
 			}
-		}
+		} */
 
 		delay_ms(LIGHT_SAMPLE_DELAY_MS);
 	}
