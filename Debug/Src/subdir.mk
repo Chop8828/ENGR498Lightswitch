@@ -8,6 +8,7 @@ C_SRCS += \
 ../Src/I2C.c \
 ../Src/LED.c \
 ../Src/SERVO.c \
+../Src/SysTick.c \
 ../Src/USART1.c \
 ../Src/main.c \
 ../Src/syscalls.c \
@@ -17,6 +18,7 @@ OBJS += \
 ./Src/I2C.o \
 ./Src/LED.o \
 ./Src/SERVO.o \
+./Src/SysTick.o \
 ./Src/USART1.o \
 ./Src/main.o \
 ./Src/syscalls.o \
@@ -26,6 +28,7 @@ C_DEPS += \
 ./Src/I2C.d \
 ./Src/LED.d \
 ./Src/SERVO.d \
+./Src/SysTick.d \
 ./Src/USART1.d \
 ./Src/main.d \
 ./Src/syscalls.d \
@@ -39,7 +42,7 @@ Src/%.o Src/%.su Src/%.cyclo: ../Src/%.c Src/subdir.mk
 clean: clean-Src
 
 clean-Src:
-	-$(RM) ./Src/I2C.cyclo ./Src/I2C.d ./Src/I2C.o ./Src/I2C.su ./Src/LED.cyclo ./Src/LED.d ./Src/LED.o ./Src/LED.su ./Src/SERVO.cyclo ./Src/SERVO.d ./Src/SERVO.o ./Src/SERVO.su ./Src/USART1.cyclo ./Src/USART1.d ./Src/USART1.o ./Src/USART1.su ./Src/main.cyclo ./Src/main.d ./Src/main.o ./Src/main.su ./Src/syscalls.cyclo ./Src/syscalls.d ./Src/syscalls.o ./Src/syscalls.su ./Src/sysmem.cyclo ./Src/sysmem.d ./Src/sysmem.o ./Src/sysmem.su
+	-$(RM) ./Src/I2C.cyclo ./Src/I2C.d ./Src/I2C.o ./Src/I2C.su ./Src/LED.cyclo ./Src/LED.d ./Src/LED.o ./Src/LED.su ./Src/SERVO.cyclo ./Src/SERVO.d ./Src/SERVO.o ./Src/SERVO.su ./Src/SysTick.cyclo ./Src/SysTick.d ./Src/SysTick.o ./Src/SysTick.su ./Src/USART1.cyclo ./Src/USART1.d ./Src/USART1.o ./Src/USART1.su ./Src/main.cyclo ./Src/main.d ./Src/main.o ./Src/main.su ./Src/syscalls.cyclo ./Src/syscalls.d ./Src/syscalls.o ./Src/syscalls.su ./Src/sysmem.cyclo ./Src/sysmem.d ./Src/sysmem.o ./Src/sysmem.su
 
 .PHONY: clean-Src
 

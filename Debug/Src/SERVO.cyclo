@@ -1,8 +1,0 @@
-../Src/SERVO.c:14:6:configure_PA1	1
-../Src/SERVO.c:34:6:TIM5_CH2_Init	1
-../Src/SERVO.c:62:6:Servo_Move_Center_All	1
-../Src/SERVO.c:71:6:Servo_Move_Off_FlickSwitch	1
-../Src/SERVO.c:76:6:Servo_Move_On_FlickSwitch	1
-../Src/SERVO.c:81:6:test_Servo_FlickSwitch	4
-../Src/SERVO.c:97:6:Servo_Move_Press_Button	1
-../Src/SERVO.c:102:6:test_Servo_Button	3

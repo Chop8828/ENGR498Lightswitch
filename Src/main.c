@@ -25,9 +25,6 @@ volatile uint16_t light_off_drop_raw = 0;
 
 volatile uint8_t light_state = 0; // global: 0 = off, 1 = on
 
-//systick & auto keep on values
-volatile uint32_t systick_ms = 0;
-
 volatile uint8_t keep_on_active = 0;
 volatile uint32_t keep_on_end_ms = 0;
 
