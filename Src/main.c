@@ -241,6 +241,7 @@ int main(void) {
 	configure_LED_pin();
 
 	USART1_Init();
+	USART1_BluetoothParser_Init();
 
 	I2C_GPIO_init();
 	I2C_Initialization(I2C1, 0x10100909U);
@@ -263,40 +264,59 @@ int main(void) {
 	while (1) {
 		raw = VEML7700_ReadReg16(VEML7700_ALS_DATA);
 
-		if (bluetooth_button == '1') {
-			keep_on_active = 0;
+		if (raw != 0xFFFF) {
+			lux = calculate_lux(raw);
 
-			Try_Turn_Light_Until_Target("on");
+			BluetoothCommand bt_cmd;
 
-			bluetooth_button = '\0';
-			delay_ms(LIGHT_SAMPLE_DELAY_MS);
-			continue;
-			// dont want ambient light logic messing with manual flicking
-		} else if (bluetooth_button == '0') {
-			keep_on_active = 0;
+			if (USART1_GetBluetoothCommand(&bt_cmd)) {
+				if (bt_cmd.type == BT_CMD_ON) {
+					keep_on_active = 0;
 
-			Try_Turn_Light_Until_Target("off");
+					Try_Turn_Light_Until_Target("on");
 
-			bluetooth_button = '\0';
-			delay_ms(LIGHT_SAMPLE_DELAY_MS);
-			continue;
-		} else if (keep_on_active) {
-			if (keep_on_time_expired()) {
+					delay_ms(LIGHT_SAMPLE_DELAY_MS);
+					continue;
+					// dont want ambient light logic messing with manual flicking
+				}
+				else if (bt_cmd.type == BT_CMD_OFF) {
+					keep_on_active = 0;
+
+					Try_Turn_Light_Until_Target("off");
+
+					delay_ms(LIGHT_SAMPLE_DELAY_MS);
+					continue;
+				}
+				else if (bt_cmd.type == BT_CMD_KEEP_ON) {
+					keep_on_x_time(bt_cmd.minutes);
+
+					delay_ms(LIGHT_SAMPLE_DELAY_MS);
+					continue;
+				}
+			}
+
+			if (keep_on_active) {
+				if (keep_on_time_expired()) {
+					delay_ms(LIGHT_SAMPLE_DELAY_MS);
+					continue;
+				}
+
+				if (light_state == 0) {
+					Try_Turn_Light_Until_Target("on");
+				}
+
 				delay_ms(LIGHT_SAMPLE_DELAY_MS);
 				continue;
 			}
-
-			if (light_state == 0) {
+			else if ((raw < light_on_threshold_raw) && (light_state == 0)) {
+				turn_off_LED();
 				Try_Turn_Light_Until_Target("on");
 			}
-
-			delay_ms(LIGHT_SAMPLE_DELAY_MS);
-			continue;
-		} else if ((raw < light_on_threshold_raw) && (light_state == 0)) {
-			turn_off_LED();
-			Try_Turn_Light_Until_Target("on");
-		} else if ((raw > light_off_threshold_raw) && (light_state == 1)) {
-			Try_Turn_Light_Until_Target("off");
+			else if ((raw > light_off_threshold_raw) && (light_state == 1)) {
+				Try_Turn_Light_Until_Target("off");
+			}
 		}
+
+		delay_ms(LIGHT_SAMPLE_DELAY_MS);
 	}
 }

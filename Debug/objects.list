@@ -1,6 +1,7 @@
 "./Src/I2C.o"
 "./Src/LED.o"
 "./Src/SERVO.o"
+"./Src/SysTick.o"
 "./Src/USART1.o"
 "./Src/main.o"
 "./Src/syscalls.o"
