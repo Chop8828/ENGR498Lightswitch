@@ -1,2 +1,8 @@
-../Src/main.c:10:6:FPU_Enable	4	static,ignoring_inline_asm
-../Src/main.c:17:5:main	8	static
+../Src/main.c:25:6:FPU_Enable	4	static,ignoring_inline_asm
+../Src/main.c:31:6:delay_ms	24	static,ignoring_inline_asm
+../Src/main.c:40:7:calculate_lux	16	static
+../Src/main.c:51:6:Ambient_CalibrateStartup	32	static
+../Src/main.c:99:9:Light_Is_Actually_Off	16	static
+../Src/main.c:116:9:Light_Reached_Target	16	static
+../Src/main.c:145:9:Try_Turn_Light_Until_Target	24	static
+../Src/main.c:191:5:main	8	static

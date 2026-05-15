@@ -10,6 +10,9 @@
 
 #include "stm32l476xx.h"
 
+extern volatile uint8_t bluetooth_button;
+extern volatile uint8_t bluetooth_data_ready;
+
 void USART1_WriteString(const char *s);
 
 // This function initializes the USART1 module

@@ -1,6 +1,6 @@
-C:/Users/Chop/STM32CubeIDE/workspace_1.19.0/FinalProject/CMSIS/Include/core_cm4.h:1679:22:__NVIC_EnableIRQ	2
-../Src/USART1.c:21:13:USART1_WriteChar	2
-../Src/USART1.c:27:6:USART1_WriteString	2
-../Src/USART1.c:36:6:USART1_Pin_Init	1
-../Src/USART1.c:54:6:USART1_Init	3
-../Src/USART1.c:106:6:USART1_IRQHandler	6
+/home/trenton/Desktop/notes/Classes/ENGR498/Final Project/Code/ENGR498Lightswitch/CMSIS/Include/core_cm4.h:1679:22:__NVIC_EnableIRQ	2
+../Src/USART1.c:24:13:USART1_WriteChar	2
+../Src/USART1.c:30:6:USART1_WriteString	2
+../Src/USART1.c:39:6:USART1_Pin_Init	1
+../Src/USART1.c:57:6:USART1_Init	3
+../Src/USART1.c:109:6:USART1_IRQHandler	3

@@ -7,7 +7,7 @@
 
 #include "LED.h"
 
-#define LED_PIN  5
+#define LED_PIN  8
 
 // PA2  <--> LED
 

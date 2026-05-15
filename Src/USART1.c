@@ -18,6 +18,9 @@
 #define TX_PIN 9
 #define RX_PIN 10
 
+volatile uint8_t bluetooth_button;
+volatile uint8_t bluetooth_data_ready;
+
 static void USART1_WriteChar(char c)
 {
     while (!(USART1->ISR & USART_ISR_TXE));
@@ -105,7 +108,6 @@ void USART1_Init(void)
 // This function serves as the interrupt handler for USART2.
 void USART1_IRQHandler(void)
 {
-    uint8_t data;
 
     // Check if the RXNE (Receive Not Empty) interrupt is triggered, indicating new data is available in the USART_RDR register.
     if (USART1->ISR & USART_ISR_RXNE)
@@ -114,13 +116,14 @@ void USART1_IRQHandler(void)
     	USART1->ICR |= USART_ICR_ORECF;
 
     	// Read data from the receiver data register (RDR), which also clears the RXNE flag.
-    	data = (uint8_t)USART1->RDR;
+    	bluetooth_button = (uint8_t)USART1->RDR;
+    	bluetooth_data_ready = 1;
 
-        if (data == '\r' || data == '\n')
+        if (bluetooth_button == '\r' || bluetooth_button == '\n')
         {
             return;
         }
-
+        /*
         if (data == '1')
         {
         	turn_on_LED();
@@ -136,7 +139,7 @@ void USART1_IRQHandler(void)
         else
         {
             USART1_WriteString("?");
-        }
+        } */
     }
 }
 
