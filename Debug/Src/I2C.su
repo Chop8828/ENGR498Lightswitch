@@ -1,8 +1,0 @@
-../Src/I2C.c:20:6:I2C_GPIO_init	4	static
-../Src/I2C.c:48:6:I2C_Initialization	16	static
-../Src/I2C.c:78:8:I2C_Start	24	static
-../Src/I2C.c:113:6:I2C_WaitLineIdle	16	static
-../Src/I2C.c:120:8:I2C_SendData	32	static
-../Src/I2C.c:151:8:I2C_ReceiveData	32	static
-../Src/I2C.c:190:8:VEML7700_WriteReg16	24	static
-../Src/I2C.c:208:10:VEML7700_ReadReg16	24	static

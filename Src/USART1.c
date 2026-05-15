@@ -25,11 +25,8 @@
 volatile uint8_t bluetooth_button;
 volatile uint8_t bluetooth_data_ready;
 
-static volatile char bluetooth_rx_buffer[BT_CMD_MAX_LEN];
-static volatile uint32_t bluetooth_rx_index = 0;
+static volatile BluetoothCommand bluetooth_pending_cmd;
 static volatile uint8_t bluetooth_command_ready = 0;
-
-static char bluetooth_command_buffer[BT_CMD_MAX_LEN];
 
 static void USART1_WriteChar(char c)
 {
@@ -119,13 +116,10 @@ void USART1_BluetoothParser_Init(void) {
     bluetooth_button = 0;
     bluetooth_data_ready = 0;
 
-    bluetooth_rx_index = 0;
     bluetooth_command_ready = 0;
 
-    for (uint32_t i = 0; i < BT_CMD_MAX_LEN; i++) {
-        bluetooth_rx_buffer[i] = '\0';
-        bluetooth_command_buffer[i] = '\0';
-    }
+    bluetooth_pending_cmd.type = BT_CMD_NONE;
+    bluetooth_pending_cmd.minutes = 0;
 }
 
 uint8_t USART1_GetBluetoothCommand(BluetoothCommand *cmd) {
@@ -135,38 +129,19 @@ uint8_t USART1_GetBluetoothCommand(BluetoothCommand *cmd) {
 
     __disable_irq();
 
-    for (uint32_t i = 0; i < BT_CMD_MAX_LEN; i++) {
-        bluetooth_command_buffer[i] = bluetooth_rx_buffer[i];
-    }
+    cmd->type = bluetooth_pending_cmd.type;
+    cmd->minutes = bluetooth_pending_cmd.minutes;
 
+    bluetooth_pending_cmd.type = BT_CMD_NONE;
+    bluetooth_pending_cmd.minutes = 0;
     bluetooth_command_ready = 0;
 
     __enable_irq();
 
-    cmd->type = BT_CMD_INVALID;
-    cmd->minutes = 0;
-
-    if (strcmp(bluetooth_command_buffer, "1") == 0) {
-        cmd->type = BT_CMD_ON;
-    }
-    else if (strcmp(bluetooth_command_buffer, "0") == 0) {
-        cmd->type = BT_CMD_OFF;
-    }
-    else if (strncmp(bluetooth_command_buffer, "KEEP ", 5) == 0) {
-        cmd->type = BT_CMD_KEEP_ON;
-        cmd->minutes = (uint32_t)atoi(&bluetooth_command_buffer[5]);
-
-        if (cmd->minutes == 0) {
-            cmd->type = BT_CMD_INVALID;
-        }
-    }
-    else {
-        cmd->type = BT_CMD_INVALID;
-    }
-
     return 1;
 }
 
+// This function serves as the interrupt handler for USART1.
 // This function serves as the interrupt handler for USART1.
 void USART1_IRQHandler(void)
 {
@@ -180,32 +155,20 @@ void USART1_IRQHandler(void)
     	bluetooth_button = (uint8_t)USART1->RDR;
     	bluetooth_data_ready = 1;
 
-        if (bluetooth_button == '1' || bluetooth_button == '0') {
-            bluetooth_rx_buffer[0] = (char)bluetooth_button;
-            bluetooth_rx_buffer[1] = '\0';
-            bluetooth_rx_index = 0;
+        if (bluetooth_button == 0U) {
+            bluetooth_pending_cmd.type = BT_CMD_OFF;
+            bluetooth_pending_cmd.minutes = 0;
             bluetooth_command_ready = 1;
-            return;
         }
-
-        if (bluetooth_button == '\r' || bluetooth_button == '\n')
-        {
-            if (bluetooth_rx_index > 0) {
-                bluetooth_rx_buffer[bluetooth_rx_index] = '\0';
-                bluetooth_command_ready = 1;
-            }
-
-            bluetooth_rx_index = 0;
-            return;
-        }
-
-        if (bluetooth_rx_index < (BT_CMD_MAX_LEN - 1U)) {
-            bluetooth_rx_buffer[bluetooth_rx_index] = (char)bluetooth_button;
-            bluetooth_rx_index++;
+        else if (bluetooth_button == 1U) {
+            bluetooth_pending_cmd.type = BT_CMD_ON;
+            bluetooth_pending_cmd.minutes = 0;
+            bluetooth_command_ready = 1;
         }
         else {
-            bluetooth_rx_index = 0;
-            bluetooth_command_ready = 0;
+            bluetooth_pending_cmd.type = BT_CMD_KEEP_ON;
+            bluetooth_pending_cmd.minutes = bluetooth_button;
+            bluetooth_command_ready = 1;
         }
     }
 }

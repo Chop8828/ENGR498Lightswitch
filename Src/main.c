@@ -26,10 +26,13 @@ volatile uint16_t light_off_drop_raw = 0;
 volatile uint8_t light_state = 0; // global: 0 = off, 1 = on
 
 //systick & auto keep on values
-volatile uint32_t systick_ms = 0;
 
 volatile uint8_t keep_on_active = 0;
 volatile uint32_t keep_on_end_ms = 0;
+
+//debug
+volatile uint32_t keep_on_time_left_debug_ms = 0;
+volatile uint32_t keep_on_time_left_debug_s = 0;
 
 void FPU_Enable(void) {
 	SCB->CPACR |= ((3UL << 20U) | (3UL << 22U));
@@ -197,11 +200,9 @@ uint8_t Try_Turn_Light_Until_Target(char value[]) {
 	return 0; // tried several times, but did not observe light drop
 }
 
-void keep_on_x_time(char value[]) {
-	uint32_t minutes = 0;
+void keep_on_x_time(uint32_t minutes) {
 	uint32_t duration_ms = 0;
 
-	minutes = (uint32_t) atoi(value);
 
 	if (minutes == 0) {
 		keep_on_active = 0;
@@ -227,6 +228,20 @@ uint8_t keep_on_time_expired(void) {
 	}
 
 	return 0;
+}
+
+uint32_t keep_on_time_left_ms(void) {
+    uint32_t now = millis();
+
+    if (keep_on_active == 0) {
+        return 0;
+    }
+
+    if ((int32_t)(keep_on_end_ms - now) <= 0) {
+        return 0;
+    }
+
+    return keep_on_end_ms - now;
 }
 
 int main(void) {
@@ -296,6 +311,9 @@ int main(void) {
 			}
 
 			if (keep_on_active) {
+			    keep_on_time_left_debug_ms = keep_on_time_left_ms();
+			    keep_on_time_left_debug_s = keep_on_time_left_debug_ms / 1000U;
+
 				if (keep_on_time_expired()) {
 					delay_ms(LIGHT_SAMPLE_DELAY_MS);
 					continue;
